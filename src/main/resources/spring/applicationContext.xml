@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<beans xmlns="http://www.springframework.org/schema/beans"  
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"  
+       xsi:schemaLocation="http://www.springframework.org/schema/beans  
+                        http://www.springframework.org/schema/beans/spring-beans-3.1.xsd  
+                        http://www.springframework.org/schema/context  
+                        http://www.springframework.org/schema/context/spring-context-3.1.xsd  
+                        http://www.springframework.org/schema/tx  
+                        http://www.springframework.org/schema/tx/spring-tx.xsd">  
+  
+    <!-- 自动扫描 -->  
+    <context:component-scan base-package="com.yyht"/>  
+  
+    <!-- 第一种方式：加载一个properties文件 -->  
+    <bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">  
+		<property name="locations">
+			<list>    
+                 <value>classpath:houtai_db.properties</value> 
+                 <value>classpath:redis/redis_config.properties</value>  
+            </list>  
+        </property>  
+	</bean> 
+  
+   <!-- 数据库配置信息 -->
+    <bean id="dataSource" class="com.yyht.common.db.DecryptDruidSource"  destroy-method="close">
+        <property name="url" value="${houtai_db_url}"/>
+        <property name="driverClassName" value="${houtai_db_driverClassName}"/>
+        <property name="username" value="${houtai_db_username}" />
+        <property name="password" value="${houtai_db_password}" />
+          <!-- 连接池启动时的初始值 -->
+        <property name="initialSize" value="10"/>
+        <!-- 连接池的最大值 -->
+        <property name="maxActive" value="30"/>
+        <!-- 最小空闲值.当空闲的连接数少于阀值时，连接池就会预申请去一些连接，以免洪峰来时来不及申请 -->
+        <property name="minIdle" value="5"/>
+        <!-- 连接池中连接用完时,新的请求等待时间,毫秒 -->
+        <property name="maxWait" value="2000"/>
+        <!-- #给出一条简单的sql语句进行验证 -->
+        <property name="validationQuery" value="select 1"/>
+        <!-- #在取出连接时进行有效验证 -->
+        <property name="testOnBorrow" value="true"/>
+        <!-- #连接池收回空闲的活动连接时是否打印消息-->
+        <property name="removeAbandonedTimeout" value="20"/>
+        <property name="removeAbandoned" value="true"/>
+        <property name="logAbandoned" value="true"/>
+        <!-- #运行判断连接超时任务的时间间隔，单位为毫秒，默认为-1，即不执行任务。 -->
+        <property name="timeBetweenEvictionRunsMillis" value="58000"/>
+        <!-- #连接的超时时间，默认为半小时。 -->
+        <property name="minEvictableIdleTimeMillis" value="60000"/>
+        <!-- druid 连接池的专有属性 -->
+        <!-- 开启Druid的监控统计功能 -->
+     	<property name="filters" value="config"/> 
+        <!-- 开启数据库密码解密-->
+        <property name="connectionProperties" value="config.decrypt=true" /> 
+  
+    </bean>
+   <!-- 配置mybatis -->
+	 <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="mapperLocations" value="classpath:com/yyht/mapping/*.xml"></property>
+	</bean>
+  
+    <!-- 配置自动扫描加载Sql映射文件(接口) -->  
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!-- 指定sql映射文件(接口)所在的包（自动扫描） -->  
+        <property name="basePackage" value="com.yyht.dao"/> 
+        <!-- 指定引用的 SqlSession 工厂 --> 
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"></property>  
+    </bean>  
+  
+    <!-- (事务管理)transaction manager, use JtaTransactionManager for global tx -->  
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">  
+        <property name="dataSource" ref="dataSource"/>  
+    </bean>  
+    <tx:annotation-driven transaction-manager="transactionManager"/>  
+    
+   <import resource="classpath:spring/applicationContext-redis.xml"/> 
+  <!--   <import resource="classpath:spring/applicationContext-shiro.xml"/> -->
+</beans>  

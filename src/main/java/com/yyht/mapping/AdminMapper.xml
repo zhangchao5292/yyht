@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yyht.dao.AdminMapper" >
+	
+  <!-- 插入admin -->
+ <insert id="saveAdmin" parameterType="com.yyht.entity.Admin">
+  	insert into admin(name,password) values(#{name,jdbcType=VARCHAR},#{password,jdbcType=VARCHAR})
+  </insert> 
+  <!-- 更加id查询 -->
+  <select id="findAdminById" resultType="com.yyht.entity.Admin" parameterType="java.lang.Integer">
+     select name,password from admin where id=#{id}
+  </select>
+  <!-- 查询列表 -->
+  <select id="findAdminList" resultType="map" parameterType="map">
+     select name,password from admin
+     <if test="asc != null ">
+    	order by ${asc} asc
+    </if>
+    <if test="desc != null ">
+    	order by ${desc} desc
+    </if>
+  	<if test="iDisplayStart != null" >
+  		limit #{iDisplayStart,jdbcType=INTEGER},#{pageDisplayLength,jdbcType=INTEGER}
+    </if>  
+  </select>
+  <!-- 查询列表 -->
+  <select id="queryAdminCount" resultType="java.lang.Integer" parameterType="map">
+     select count(1) from admin
+     <if test="asc != null ">
+    	order by ${asc} asc
+    </if>
+    <if test="desc != null ">
+    	order by ${desc} desc
+    </if>
+  </select>
+  <!-- 查询列表 -->
+  <select id="queryAdminTotal" resultType="java.lang.Integer" >
+    select count(1) from admin
+  </select>
+</mapper>
